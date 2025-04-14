@@ -17,7 +17,7 @@
           extend: {
             fontFamily: {
               'sans': ['Lato', 'sans-serif'],
-              'serif': ['Playfair Display', 'serif'],
+              'serif': ['Playfair Display', 'serif'], // Playfair Display ya está definida
             },
             colors: {
               'zen-deep-teal': '#004d4d',
@@ -35,22 +35,93 @@
 
     <style>
         /* Estilos para las cartas y etiquetas */
-        .tarot-card { aspect-ratio: 2.75 / 4.75; transition: transform 0.5s ease, box-shadow 0.3s ease; transform-style: preserve-3d; position: relative; }
-        .tarot-card img { object-fit: cover; width: 100%; height: 100%; display: block; border-radius: 0.375rem; /* Bordes redondeados para la imagen */}
-        .card-back { background: linear-gradient(135deg, #004d4d, #2F4F4F); border: 2px solid #EEE8AA; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #EEE8AA; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 0.5rem; backface-visibility: hidden; z-index: 2; }
-        .card-content { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; background-color: white; /* Fondo blanco por si la imagen no carga */}
-        .position-label { position: absolute; top: 0; left: 0; right: 0; background-color: rgba(0, 77, 77, 0.7); color: #EEE8AA; font-size: 0.7rem; font-weight: bold; padding: 2px 0; text-align: center; z-index: 3; border-top-left-radius: 0.375rem; border-top-right-radius: 0.375rem; }
-        .tarot-card .card-content { visibility: hidden; }
-        .tarot-card.revealed .card-back { display: none; }
-        .tarot-card.revealed .card-content { visibility: visible; }
-        .category-label { font-size: 0.65rem; font-style: italic; color: #555; margin-top: 2px; }
-        /* Estilo para la pregunta final en la interpretación */
-        .future-question {
-            display: block; /* Asegura que esté en nueva línea si es necesario */
-            margin-top: 0.75rem; /* 12px */
-            font-style: italic;
+        .tarot-card {
+             aspect-ratio: 2.75 / 4.75; /* Proporción estándar de carta de tarot */
+             transition: transform 0.5s ease, box-shadow 0.3s ease; /* Animación suave */
+             transform-style: preserve-3d; /* Necesario para el efecto de volteo */
+             position: relative; /* Para posicionar elementos internos como el reverso */
+             width: 100%; /* Hacemos que la carta ocupe el ancho del contenedor padre */
+        }
+        .tarot-card img {
+            object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+            width: 100%;
+            height: 100%;
+            display: block; /* Evita espacios extra debajo de la imagen */
+            border-radius: 0.375rem; /* Bordes redondeados para la imagen (ajustar si se usa borde en .tarot-card) */
+        }
+        .card-back {
+            background: linear-gradient(135deg, #004d4d, #2F4F4F); /* Fondo degradado para el reverso */
+            border: 2px solid #EEE8AA; /* Borde dorado pálido */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem; /* Tamaño para posible icono o texto en el reverso */
+            color: #EEE8AA;
+            position: absolute; /* Se superpone al contenido */
+            top: 0; left: 0; right: 0; bottom: 0; /* Ocupa todo el espacio de .tarot-card */
+            border-radius: 0.5rem; /* Bordes redondeados consistentes */
+            backface-visibility: hidden; /* Oculta el reverso cuando la carta está de frente */
+            z-index: 2; /* Asegura que esté sobre el contenido inicialmente */
+         }
+        .card-content {
+            position: relative; /* Contenedor del frente de la carta */
+            z-index: 1; /* Detrás del reverso inicialmente */
+            height: 100%;
+            display: flex;
+            flex-direction: column; /* Apila imagen y texto debajo */
+            background-color: white; /* Fondo por si la imagen no carga */
+            border-radius: 0.5rem; /* Asegura bordes redondeados */
+            overflow: hidden; /* Evita que la imagen se salga del borde redondeado */
+         }
+
+        /* Estilo de la etiqueta de posición (Pasado/Presente/Futuro) */
+        .position-label {
             color: #004d4d; /* Color zen-deep-teal */
-            font-weight: 600; /* semibold */
+            font-family: 'Playfair Display', serif; /* Tipografía Serif */
+            font-size: 1.1rem; /* Tamaño de fuente */
+            font-weight: 700; /* Peso (bold) */
+            text-align: center;
+            margin-bottom: 0.5rem; /* Espacio debajo de la etiqueta (8px) */
+            /* Ya no tiene position:absolute, background, etc. */
+        }
+
+        /* Control de visibilidad para el efecto de volteo */
+        .tarot-card .card-content { visibility: hidden; } /* El frente está oculto al inicio */
+        .tarot-card.revealed .card-back { display: none; } /* Oculta el reverso cuando se revela */
+        .tarot-card.revealed .card-content { visibility: visible; } /* Muestra el frente cuando se revela */
+
+        /* Estilo del contenedor para nombre y categoría DEBAJO de la imagen */
+        .name-container {
+            padding: 4px;
+            text-align: center;
+            flex-shrink: 0; /* Evita que se encoja */
+            background-color: white;
+            border-bottom-left-radius: 0.5rem; /* Redondeo solo abajo */
+            border-bottom-right-radius: 0.5rem;
+        }
+         /* Estilo del nombre de la carta */
+         .card-name {
+            font-size: 0.8rem;
+            font-weight: 700; /* Lato Bold */
+            color: #2F4F4F; /* zen-dark-slate */
+            display: block;
+            margin-top: 2px;
+         }
+         /* Estilo de la categoría de la carta */
+        .category-label {
+             font-size: 0.65rem;
+             font-style: italic;
+             color: #555;
+             margin-top: 0px;
+        }
+
+        /* Estilo para la pregunta reflexiva en la interpretación del futuro */
+        .future-question {
+            display: block;
+            margin-top: 0.75rem;
+            font-style: italic;
+            color: #004d4d;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -79,271 +150,324 @@
 
     <script>
         // --- Definición de los Arcanos Mayores ---
-        // IMPORTANTE: Las rutas 'image' ahora apuntan a archivos locales en la carpeta 'images'
+        // Incluye id, nombre, categoría, si es desafío (isChallenge), interpretaciones y ruta de imagen.
+        // IMPORTANTE: Asegúrate que las rutas en 'image:' coincidan EXACTAMENTE con tus archivos en la carpeta /images de GitHub.
         const cartasMayores = [
              { id: 0, name: "El Loco", categoria: "Inicio / Impulso", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Loco.png" // Ruta actualizada
+                interpretation: {
+                    past: "Esta situación viene de un momento de inicio lleno de fe y espontaneidad, un \"salto al vacío\" donde quizás no tenías todo planeado, pero sí la confianza para empezar algo nuevo. Se relaciona con un período de libertad, inocencia o toma de riesgos que sentó una base importante, aunque quizás poco estructurada, para el presente. Ese impulso inicial, aunque ingenuo, fue crucial para ponerte en movimiento. Recordá esa chispa original de potencial puro que te animó a comenzar.",
+                    present: "En este momento, El Loco te invita a abrazar un nuevo comienzo con fe y apertura. Estás al borde de algo nuevo, quizás inesperado. Es un llamado a confiar en tu intuición y a dar un paso hacia lo desconocido, liberándote de miedos. Hay un gran potencial disponible si te animás a ser espontáneo y a tomar un riesgo calculado. No te preocupes tanto por el destino final, disfrutá del viaje que empieza ahora. ¿Estás listo para el salto?",
+                    future: "Mirando hacia adelante, El Loco sugiere la posibilidad de un nuevo comienzo emocionante, quizás inesperado. El futuro te invita a dar un salto de fe, a abrazar lo desconocido con optimismo y a liberarte de viejas restricciones. Preparate para una aventura que requerirá confianza e intuición; no busques mapas detallados, seguí tu corazón. El potencial es ilimitado si te animás a empezar y a mantener la mente abierta a las sorpresas del camino. <span class='future-question'>¿Cómo vas a dar ese primer paso con confianza y alegría?</span>"
+                }, image: "images/Loco.png"
              },
             { id: 1, name: "El Mago", categoria: "Inicio / Impulso", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Mago.png" // Ruta actualizada
+                interpretation: {
+                    past: "Esta situación viene de un momento en que reconociste y utilizaste tu poder personal, tus habilidades y recursos disponibles. Se relaciona con un período de acción consciente y enfocada, donde conectaste tu voluntad e inspiración para manifestar activamente algo importante. Esa capacidad de creación y manifestación que demostraste es la base sobre la que se construye tu presente. Recordá que tenés esas herramientas a tu disposición.",
+                    present: "El Mago te recuerda ahora mismo el poder que tenés para crear tu realidad. Poseés las habilidades, los recursos y la voluntad necesarios para manifestar tus intenciones. Es el momento de enfocar tu energía, concentrarte en tus objetivos y actuar de manera decisiva. Conectá tu visión con la acción práctica. No dudes de tu capacidad; el universo conspira a tu favor cuando te alineás con tu propósito. Recordá que la magia más poderosa es la que nace de una intención clara y una acción enfocada. ¿Qué elegís manifestar conscientemente hoy?",
+                    future: "El futuro tiene un gran potencial para la manifestación si actuás con enfoque y voluntad. El Mago indica que tendrás los recursos, habilidades y poder personal para crear activamente los resultados que deseás. Será un tiempo para tomar la iniciativa y convertir tus ideas en realidad tangible. Mantené la concentración y la confianza en tus capacidades; el éxito futuro depende de tu acción presente. Preparate para usar tu poder conscientemente. <span class='future-question'>¿Qué acción concreta vas a tomar hoy para empezar a manifestarlo?</span>"
+                }, image: "images/Mago.png"
              },
             { id: 2, name: "La Sacerdotisa", categoria: "Introspección", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Sacerdotisa.png" // Ruta actualizada
+                interpretation: {
+                    past: "Esta situación viene de un período de introspección, de escuchar tu voz interior o de conectar con tu intuición profunda. Puede que hubiera secretos, misterios o conocimientos ocultos influyendo en el trasfondo. Fue un tiempo donde la sabiduría no venía de la acción externa, sino de la quietud, la receptividad y la conexión con tu subconsciente. Esa pausa reflexiva o esa información velada son claves para entender el ahora.",
+                    present: "Tu situación actual requiere que mires hacia adentro y confíes profundamente en tu intuición. La Sacerdotisa sugiere que las respuestas no están en el exterior, sino en tu sabiduría interior y subconsciente. Puede haber aspectos ocultos o no revelados en juego; no fuerces las cosas para que salgan a la luz todavía. Es un tiempo para la quietud, la escucha atenta y la conexión con tu guía interna, más que para la acción externa. Prestá atención a tus sueños y sincronicidades. ¿Qué te dice tu intuición ahora?",
+                    future: "El futuro podría requerir que confíes más en tu intuición y sabiduría interior que en la lógica externa. La Sacerdotisa sugiere que pueden revelarse secretos o que necesitarás introspección para comprender la situación. Las respuestas vendrán de la escucha atenta y la conexión con tu subconsciente. Mantenete receptivo a los mensajes sutiles. La paciencia y la observación silenciosa serán tus mejores aliadas. <span class='future-question'>¿Cómo vas a crear espacios de silencio para escuchar esa sabiduría?</span>"
+                }, image: "images/Sacerdotisa.png"
              },
             { id: 3, name: "La Emperatriz", categoria: "Creatividad / Nutrición", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Emperatriz.png" // Ruta actualizada
+                interpretation: {
+                    past: "Esta situación viene de una fase de gran creatividad, fertilidad o conexión con la abundancia y la naturaleza. Se relaciona con un tiempo de nutrición (propia o hacia otros), de disfrute sensorial o del florecimiento de ideas y proyectos. La energía maternal, el cuidado y la belleza fueron influencias importantes que dieron forma al presente. Esa base fértil es la que te permite seguir creciendo.",
+                    present: "La energía de la Emperatriz te rodea ahora, trayendo creatividad, abundancia y conexión con la belleza y la naturaleza. Es un momento fértil para nutrir proyectos, relaciones o a vos mismo. Conectá con tus sentidos, cuidá tu bienestar y permití que tu lado creativo florezca. La abundancia está disponible si te abrís a recibirla y a crear con amor. Date permiso para disfrutar y sentir placer. ¿Qué estás cultivando y nutriendo en este instante?",
+                    future: "El futuro promete un período de creatividad, abundancia y crecimiento. La Emperatriz sugiere el florecimiento de proyectos, relaciones o bienestar personal. Será un tiempo para conectar con la naturaleza, disfrutar de la belleza y nutrir tus creaciones. La energía de la fertilidad y el cuidado estará presente. Abrite a recibir y a crear; el universo está listo para darte sus frutos. <span class='future-question'>¿De qué manera vas a expresar tu creatividad y a recibir la abundancia?</span>"
+                }, image: "images/Emperatriz.png"
              },
             { id: 4, name: "El Emperador", categoria: "Tradición / Guía", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Emperador.png" // Ruta actualizada
+                interpretation: {
+                    past: "Esta situación viene de un tiempo donde la estructura, el orden y la autoridad (propia o externa) jugaron un papel fundamental. Se relaciona con el establecimiento de bases sólidas, la aplicación de disciplina, la toma de control o la influencia de una figura paterna o de liderazgo. Se construyó sobre cimientos firmes y definidos. Esa organización pasada te da estabilidad (o rigidez) ahora.",
+                    present: "El Emperador indica una necesidad actual de estructura, orden y disciplina en tu vida. Es el momento de tomar el control de la situación, establecer límites claros, planificar estratégicamente y actuar con autoridad y responsabilidad. Puede que necesites ser un líder para vos mismo o para otros, construyendo sobre bases firmes. No temas ejercer tu autoridad con sabiduría. La organización y la lógica te guiarán. ¿Dónde necesitás aplicar más orden o tomar las riendas ahora?",
+                    future: "Hacia adelante, El Emperador señala la posibilidad (o necesidad) de establecer mayor estructura, orden y estabilidad. Puede que asumas un rol de liderazgo, tomes control firme de una situación o construyas sobre bases más sólidas. La disciplina y la planificación serán claves para el éxito futuro. Asumí tu poder y responsabilidad con confianza. Preparate para ser organizado y decidido. <span class='future-question'>¿Qué paso concreto darás para establecer esa estructura necesaria?</span>"
+                }, image: "images/Emperador.png"
              },
             { id: 5, name: "El Sumo Sacerdote", categoria: "Tradición / Guía", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/SumoSacerdote.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un período influenciado por la tradición, las instituciones, sistemas de creencias establecidos o la guía de un mentor o maestro. Puede indicar que se siguió un camino convencional, se buscó consejo en fuentes establecidas o se aprendió dentro de una estructura formal. Esas enseñanzas o estructuras pasadas siguen teniendo peso hoy.",
+                    present: "En este momento, puede ser beneficioso buscar guía en la tradición, en sistemas de creencias establecidos o en un mentor o consejero sabio. El Sumo Sacerdote sugiere que seguir un camino probado o aprender de estructuras existentes puede ofrecerte las respuestas o el apoyo que necesitás ahora. Considerá las normas y el conocimiento convencional, pero sin perder tu criterio. A veces, la sabiduría compartida es un gran soporte. ¿Necesitás buscar consejo o seguir una estructura más tradicional?",
+                    future: "El futuro podría implicar seguir un camino más tradicional, buscar la guía de instituciones o mentores, o profundizar en sistemas de creencias establecidos. El Sumo Sacerdote sugiere que aprender de la sabiduría convencional o encontrar conformidad dentro de un grupo podría ser beneficioso o necesario. Puede ser un buen momento para enseñar o compartir tu propio conocimiento estructurado. Considerá buscar u ofrecer consejo estructurado. <span class='future-question'>¿Estás abierto a aprender de las estructuras existentes o a compartir tu saber?</span>"
+                }, image: "images/SumoSacerdote.png"
              },
             { id: 6, name: "Los Enamorados", categoria: "Conflicto / Sombra", isChallenge: true,
-                interpretation: { /* ... */ },
-                image: "images/Enamorados.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de una elección importante realizada en el pasado, a menudo relacionada con relaciones, valores personales o una encrucijada significativa. La decisión tomada en ese momento, buscando la armonía o la alineación con el corazón, ha tenido un impacto directo en las circunstancias actuales. Las consecuencias de esa elección aún están presentes.",
+                    present: "Estás enfrentando una elección significativa ahora mismo, probablemente relacionada con tus relaciones, valores fundamentales o una decisión del corazón. Los Enamorados te piden que elijas desde la autenticidad y la alineación con tu verdad. La comunicación clara y la búsqueda de armonía en tus conexiones son clave en este momento. Escuchá tanto a tu corazón como a tu mente antes de decidir. No te apresures, reflexioná sobre lo que es verdaderamente importante para vos. ¿Qué decisión importante resuena más con tu corazón ahora?",
+                    future: "Se avecina una decisión importante, especialmente en el ámbito de las relaciones o los valores personales. Los Enamorados indican que tendrás que elegir un camino alineado con tu corazón y tu verdad. El futuro requerirá comunicación clara y la búsqueda de armonía en tus conexiones significativas. La elección que hagas definirá aspectos importantes de tu camino. Preparate para tomar una decisión consciente desde tu autenticidad. <span class='future-question'>¿Qué valores guiarán tu elección cuando llegue el momento?</span>"
+                }, image: "images/Enamorados.png"
              },
             { id: 7, name: "El Carro", categoria: "Inicio / Impulso", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Carro.png" // Ruta actualizada
+                interpretation: {
+                    past: "Esta situación viene de un momento de gran determinación, voluntad y avance decidido hacia una meta. Se superaron obstáculos gracias a la confianza en uno mismo y al control ejercido sobre fuerzas opuestas. Fue un período de ambición y acción enfocada que te impulsó hacia adelante, definiendo la trayectoria actual. Ese impulso inicial te trajo hasta aquí.",
+                    present: "El Carro te impulsa a la acción decidida ahora. Es el momento de tomar las riendas, enfocar tu voluntad y avanzar hacia tus metas con determinación y confianza. Tenés la capacidad de superar los obstáculos actuales si mantenés el control y la dirección. Mantené el enfoque y no te desvíes. Canalizá tu ambición y movete con propósito. ¿Estás dirigiendo tu energía hacia la victoria?",
+                    future: "El futuro se perfila como un período de avance decidido y éxito si mantenés la determinación y el enfoque. El Carro sugiere que tendrás la voluntad y el control necesarios para superar obstáculos y alcanzar tus metas. Mantené la disciplina y la dirección clara. Canalizá tu ambición y confiá en tu capacidad para dirigir la situación hacia la victoria. <span class='future-question'>¿Estás listo para tomar las riendas y avanzar con determinación?</span>"
+                }, image: "images/Carro.png"
              },
              { id: 8, name: "La Justicia", categoria: "Equilibrio", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Justicia.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un momento donde la verdad, la equidad y la justicia (legal o kármica) fueron cruciales. Se relaciona con decisiones tomadas con objetividad, la asunción de responsabilidades o las consecuencias directas de acciones pasadas (causa y efecto). Se buscó o se encontró un equilibrio basado en la verdad. Las acciones pasadas y sus consecuencias justas son la base del presente.",
+                    present: "La Justicia te pide actuar con total honestidad, objetividad y equidad en tu situación actual. Es el momento de enfrentar la verdad, asumir la responsabilidad por tus acciones y tomar decisiones justas. Las consecuencias de actos pasados (causa y efecto) pueden estar manifestándose. Sé imparcial y claro en tus juicios. Buscá la claridad y el equilibrio en todas tus interacciones. ¿Cómo podés ser más justo y objetivo ahora?",
+                    future: "El futuro exigirá honestidad, objetividad y decisiones justas. La Justicia sugiere que la verdad saldrá a la luz y que deberás asumir la responsabilidad por tus acciones (o verás las consecuencias de acciones pasadas). Puede indicar la resolución de asuntos legales o la necesidad de restablecer el equilibrio kármico. Mantené tu integridad y buscá siempre la equidad. Actuá con integridad. <span class='future-question'>¿Estás preparado para enfrentar la verdad y actuar con total equidad?</span>"
+                }, image: "images/Justicia.png"
              },
             { id: 9, name: "El Ermitaño", categoria: "Introspección", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Ermitano.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un período de introspección, retiro voluntario o búsqueda de sabiduría interior. Fue un tiempo de reflexión profunda, quizás de soledad necesaria, donde buscaste tus propias respuestas y guía interna, apartándote del ruido exterior. Esa búsqueda de verdad personal marcó el camino y te aportó una comprensión valiosa.",
+                    present: "El Ermitaño sugiere que necesitás un tiempo de introspección y reflexión ahora. Es momento de retirarte del ruido exterior para buscar respuestas y guía dentro de vos. La soledad voluntaria puede ser beneficiosa para encontrar tu propia verdad y sabiduría. No temas desconectarte un poco para reconectar con tu esencia. Confiá en tu luz interior para iluminar el camino. ¿Qué necesitás descubrir en tu interior en este momento?",
+                    future: "El futuro podría requerir un período de introspección o incluso de retiro voluntario para encontrar respuestas. El Ermitaño sugiere que la sabiduría y la guía que necesites vendrán de tu interior, no del exterior. Será un tiempo para la reflexión profunda y la búsqueda de tu propia verdad. No dudes en tomarte tiempo a solas; será fructífero. Valorá los momentos de soledad para conectar con vos mismo. <span class='future-question'>¿Te permitirás ese espacio de silencio para encontrar tu guía interna?</span>"
+                }, image: "images/Ermitano.png"
              },
             { id: 10, name: "La Rueda de la Fortuna", categoria: "Transforma", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/RuedaDeLaFortuna.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un giro significativo del destino, un cambio de ciclo o un punto de inflexión importante ocurrido en el pasado. Pudo ser un golpe de suerte, una oportunidad inesperada o simplemente la manifestación de los ciclos naturales de la vida (karma, altibajos) que pusieron en marcha las circunstancias actuales. Ese cambio pasado fue clave.",
+                    present: "La Rueda de la Fortuna está girando en tu vida ahora mismo. Indica que el cambio es inminente o ya está ocurriendo. Puede ser un golpe de suerte, una nueva oportunidad o un giro inesperado del destino. Mantenete flexible y adaptable a los altibajos. Recordá que los ciclos cambian; fluí con el movimiento actual. Aceptá la naturaleza cambiante de la vida. ¿Estás abierto a los cambios y oportunidades que se presentan?",
+                    future: "Preparate para cambios y giros inesperados. La Rueda de la Fortuna indica que el futuro traerá movimiento, ya sea a través de nuevas oportunidades, golpes de suerte o simplemente los ciclos naturales de la vida. La clave será la adaptabilidad y la flexibilidad para fluir con lo que venga. Recordá que sos parte de un ciclo mayor; confiá en el proceso. <span class='future-question'>¿Cómo vas a mantener el equilibrio y la adaptabilidad ante los giros del destino?</span>"
+                }, image: "images/RuedaDeLaFortuna.png"
              },
              { id: 11, name: "La Fuerza", categoria: "Equilibrio", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Fuerza.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un tiempo donde se necesitó aplicar la fuerza interior, el coraje tranquilo y la compasión para manejar desafíos. No se trató de fuerza bruta, sino de paciencia, autocontrol y la habilidad de influir suavemente para dominar impulsos o miedos. Esa resiliencia interna y esa capacidad de manejo compasivo son una base importante del presente.",
+                    present: "Tu desafío actual requiere fuerza interior, no agresión. La Fuerza te pide que manejes la situación con coraje tranquilo, compasión y paciencia. Controlá tus impulsos y miedos a través de la autoconfianza y la gentileza. Tu capacidad para influir sutilmente y mantener la calma bajo presión es tu mayor fortaleza ahora. Conectá con tu poder interior sin violencia. ¿Cómo podés aplicar tu fuerza interior con compasión?",
+                    future: "Los desafíos futuros requerirán que apliques tu fuerza interior, coraje y compasión. La Fuerza sugiere que el éxito vendrá a través de la paciencia, el autocontrol y la influencia sutil, no de la confrontación directa. Tendrás la capacidad de dominar tus impulsos y miedos con una valentía tranquila. Cultivá tu fortaleza interna y tu compasión. Confiá en tu resiliencia interior. <span class='future-question'>¿De qué manera cultivarás tu paciencia y compasión para afrontar lo que venga?</span>"
+                }, image: "images/Fuerza.png"
              },
             { id: 12, name: "El Colgado", categoria: "Introspección", isChallenge: true,
-                interpretation: { /* ... */ },
-                image: "images/Colgado.png" // ¡Ojo! Tu captura decía 'colgado.png' (minúscula). Ajusta si es necesario. Usaré 'Colgado.png' por consistencia.
+                interpretation: {
+                    past: "Esta situación viene de un período de suspensión, espera o sacrificio voluntario. Fue necesario soltar el control, rendirse a las circunstancias o adoptar una perspectiva radicalmente diferente para poder avanzar. Esa pausa o cambio de visión, aunque quizás incómoda, fue fundamental para llegar al presente y te enseñó algo valioso.",
+                    present: "Te encontrás en un período de pausa, suspensión o espera. El Colgado sugiere que necesitás soltar el control, rendirte al momento y, lo más importante, ver tu situación desde una perspectiva completamente nueva. Puede requerir un sacrificio temporal o simplemente un cambio de actitud. La inacción puede ser la acción más sabia ahora; no te resistas a la pausa. Aprovechá este tiempo para reevaluar. ¿Qué perspectiva diferente necesitás adoptar?",
+                    future: "Es posible que necesites hacer una pausa, esperar o incluso hacer un sacrificio voluntario en el futuro para ganar claridad. El Colgado sugiere que soltar el control y adoptar una perspectiva radicalmente diferente será beneficioso. No fuerces las cosas; permití que la nueva visión llegue a través de la rendición y la paciencia. A veces, esperar es la clave para avanzar. <span class='future-question'>¿Estás dispuesto a soltar el control y ver las cosas desde otro ángulo?</span>"
+                }, image: "images/Colgado.png"
              },
             { id: 13, name: "La Muerte", categoria: "Transformación", isChallenge: true,
-                interpretation: { /* ... */ },
-                image: "images/Muerte.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un final importante y necesario, una transformación profunda o la conclusión de un ciclo significativo en el pasado. Fue un tiempo de soltar lo viejo y lo que ya no servía, una \"limpieza\" que, aunque pudo ser difícil, permitió el renacimiento y sentó las bases para la realidad actual. Ese final era inevitable para tu crecimiento.",
+                    present: "Un ciclo importante está llegando a su fin ahora mismo. La carta de La Muerte indica una transformación necesaria e inevitable. Es crucial soltar el pasado, lo que ya no te sirve, para permitir que ocurra un renacimiento. Aunque el cambio pueda ser intenso, es una limpieza profunda que abre la puerta a algo nuevo. No te resistas al final; es parte del proceso de evolución. Aceptá la transición. ¿Qué estás listo para dejar ir y transformar?",
+                    future: "Se avecina un final necesario y una transformación significativa. La carta de La Muerte indica que un ciclo importante concluirá, abriendo paso a un renacimiento. Será esencial dejar ir el pasado y lo que ya no sirve para poder abrazar lo nuevo. Aunque el cambio sea profundo, es una puerta hacia una nueva etapa. Preparate para soltar y transformarte. <span class='future-question'>¿Cómo vas a facilitar este final necesario para dar la bienvenida a lo nuevo?</span>"
+                }, image: "images/Muerte.png"
              },
             { id: 14, name: "La Templanza", categoria: "Equilibrio", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Templanza.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un esfuerzo consciente por encontrar equilibrio, moderación y armonía en el pasado. Fue un período donde se buscó integrar diferentes aspectos de la vida con paciencia y propósito, encontrando un camino medio y evitando los extremos. Esa alquimia interna y esa búsqueda de balance influyeron positivamente en el presente.",
+                    present: "La Templanza te guía a buscar el equilibrio y la moderación en tu vida actual. Es el momento de integrar diferentes aspectos de vos mismo o de tu situación con paciencia y armonía. Evitá los extremos y buscá el camino medio. Fluí con el proceso, mezclando energías opuestas para crear algo nuevo y equilibrado. La paciencia es tu aliada ahora. ¿Dónde necesitás más paciencia y equilibrio ahora?",
+                    future: "El camino a seguir requiere equilibrio, paciencia y moderación. La Templanza sugiere que necesitarás integrar diferentes aspectos de tu vida o encontrar un punto medio armonioso. Evitá los extremos y buscá la alquimia interior, mezclando energías con propósito para lograr fluidez y bienestar a largo plazo. La armonía será el resultado de tu enfoque paciente. <span class='future-question'>¿Qué pasos darás para cultivar activamente ese equilibrio?</span>"
+                }, image: "images/Templanza.png"
              },
             { id: 15, name: "El Diablo", categoria: "Conflicto / Sombra", isChallenge: true,
-                interpretation: { /* ... */ },
-                image: "images/Diablo.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un período donde existieron fuertes ataduras, ya sea a patrones negativos, adicciones, miedos, relaciones tóxicas o un enfoque excesivo en lo material. Puede indicar una sensación pasada de estar atrapado o limitado, cuyas sombras o consecuencias aún resuenan o de las cuales, quizás, ya te has liberado parcialmente.",
+                    present: "El Diablo señala que actualmente podés estar sintiéndote atrapado por ataduras, ya sean patrones negativos, miedos, adicciones, obsesiones materiales o relaciones limitantes. Es crucial tomar conciencia de estas cadenas autoimpuestas. Reconocer tu sombra y dónde cedés tu poder es el primer paso para liberarte. Examiná tus dependencias y miedos honestamente. ¿Qué te mantiene atado en este momento?",
+                    future: "Tené cuidado con futuras ataduras, tentaciones o patrones negativos. El Diablo advierte sobre el potencial de sentirte atrapado por miedos, adicciones, obsesiones materiales o dinámicas de poder insanas. La conciencia será clave para reconocer estas trampas y elegir la liberación en lugar de ceder tu poder. Mantenete alerta a las tentaciones de corto plazo. <span class='future-question'>¿Cómo vas a fortalecer tu voluntad para no caer en viejas trampas?</span>"
+                }, image: "images/Diablo.png"
              },
             { id: 16, name: "La Torre", categoria: "Transformación", isChallenge: true,
-                interpretation: { /* ... */ },
-                image: "images/Torre.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de una sacudida fuerte, una destrucción súbita de estructuras (creencias, relaciones, situaciones) que ya no eran sostenibles. Fue un cambio abrupto, quizás caótico, pero necesario para revelar una verdad o liberar de una falsa seguridad, forzando una reconstrucción que llevó al presente. Esa demolición pasada fue un punto de inflexión.",
+                    present: "Estás experimentando o a punto de experimentar un cambio súbito y disruptivo. La Torre indica que estructuras basadas en falsedades o que ya no son sostenibles se están derrumbando. Aunque sea caótico, es una revelación necesaria, una liberación que te fuerza a ver la verdad y a reconstruir sobre bases más auténticas. Soltá el control y permití que caiga lo que debe caer. La verdad, aunque duela, te liberará. ¿Qué verdad impactante se está revelando ahora?",
+                    future: "Preparate para posibles cambios abruptos o revelaciones impactantes. La Torre sugiere que estructuras inestables o falsas en tu vida podrían derrumbarse súbitamente. Aunque sea disruptivo, este caos es necesario para liberar la verdad y permitirte reconstruir sobre bases más auténticas. Aceptá el cambio como una oportunidad de limpieza radical. Es un potencial despertar. <span class='future-question'>¿Estás dispuesto a soltar lo viejo para reconstruir sobre bases más verdaderas?</span>"
+                }, image: "images/Torre.png"
              },
             { id: 17, name: "La Estrella", categoria: "Plenitud / Realización", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Estrella.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un tiempo de renovada esperanza, fe e inspiración después de un período difícil. Se relaciona con un momento de sanación, calma, conexión espiritual y optimismo que ayudó a restaurar la paz interior y a guiar los pasos hacia las circunstancias actuales. Esa luz de esperanza pasada te sigue iluminando.",
+                    present: "Después de un posible período difícil, La Estrella brilla ahora trayendo esperanza, sanación y serenidad. Es un momento de renovada fe en el futuro, de inspiración y conexión espiritual. Sentí la calma y el optimismo que te rodean. Confiá en tu guía interior y permití que la paz te llene. Abrite a recibir la inspiración divina. ¿Qué te da esperanza e inspiración hoy?",
+                    future: "El futuro se ilumina con esperanza, inspiración y serenidad. La Estrella promete un tiempo de sanación, calma y renovada fe. Conectate con tu guía espiritual y mantené el optimismo. La paz interior y la inspiración estarán a tu alcance si mantenés la confianza. El universo te apoya en tu camino. Seguí tu luz interior. <span class='future-question'>¿Cómo vas a nutrir activamente esa esperanza y fe en tu día a día?</span>"
+                }, image: "images/Estrella.png"
              },
             { id: 18, name: "La Luna", categoria: "Conflicto / Sombra", isChallenge: true,
-                interpretation: { /* ... */ },
-                image: "images/Luna.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un período marcado por la incertidumbre, la confusión, los miedos o las ilusiones. Las cosas pudieron no haber sido claras, y fue necesario navegar basándose más en la intuición (aunque fuera confusa) que en la lógica. Las influencias del subconsciente y quizás algunos engaños o autoengaños fueron fuertes en ese tiempo.",
+                    present: "Tu situación actual está envuelta en la energía de La Luna: incertidumbre, quizás miedos o ansiedades que surgen del subconsciente. Las cosas pueden no ser lo que parecen; tené cuidado con las ilusiones. Confiá en tu intuición, aunque se sienta confusa, para navegar por lo desconocido. Prestá atención a tus sueños y a las señales sutiles. No tomes decisiones apresuradas basadas en el miedo. ¿Qué ilusiones necesitás disipar?",
+                    future: "El camino hacia adelante puede presentar incertidumbre, confusión o miedos subconscientes. La Luna sugiere que necesitarás confiar en tu intuición para navegar por situaciones donde las cosas no sean claras o parezcan ilusorias. Mantené la calma y no te dejes llevar por la ansiedad. Prestá atención a tus sueños y a las señales sutiles para guiarte a través de lo desconocido. <span class='future-question'>¿Cómo vas a fortalecer la confianza en tu intuición para atravesar la niebla?</span>"
+                }, image: "images/Luna.png"
              },
             { id: 19, name: "El Sol", categoria: "Plenitud / Realización", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Sol.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un momento de gran alegría, éxito, claridad y vitalidad. Fue un período de optimismo, confianza y energía positiva donde las cosas salieron bien y se pudieron celebrar logros. Esa calidez y verdad revelada iluminaron el camino hacia el presente y dejaron una huella positiva.",
+                    present: "¡El Sol brilla sobre vos ahora mismo! Este es un momento de alegría, vitalidad, claridad y éxito. Disfrutá de la energía positiva, la confianza y el optimismo que te rodean. Las verdades se aclaran y podés celebrar tus logros. Conectate con tu lado más radiante y espontáneo. Compartí tu luz con los demás. ¿Qué te trae alegría y claridad hoy?",
+                    future: "¡Un futuro brillante y alegre te espera! El Sol indica éxito, vitalidad, claridad y optimismo. Es un potencial para la celebración, la confianza y la manifestación de energía positiva. Disfrutarás de la verdad revelada y de la calidez en tus relaciones y logros. Seguí avanzando con confianza y alegría. Preparate para brillar. <span class='future-question'>¿Cómo vas a compartir tu luz y tu éxito con el mundo?</span>"
+                }, image: "images/Sol.png"
              },
             { id: 20, name: "El Juicio", categoria: "Transformación", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Juicio.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de un momento de evaluación importante, un despertar o un \"llamado\" a rendir cuentas y tomar una decisión final basada en una comprensión más profunda. Fue un tiempo de revisar el pasado, quizás perdonar, y renacer a un nuevo nivel de conciencia que impactó directamente en el presente. Esa llamada pasada definió tu camino actual.",
+                    present: "Estás en un momento crucial de evaluación y despertar. El Juicio te llama a revisar tu vida, a rendir cuentas y a tomar una decisión importante basada en una comprensión más elevada. Es un renacimiento, una oportunidad para liberarte de viejas cargas y responder a tu llamado interior. Escuchá atentamente ese llamado; es hora de una evaluación honesta. Perdoná y liberate. ¿Qué decisión importante debés tomar ahora?",
+                    future: "Se acerca un momento importante de evaluación y despertar. El Juicio sugiere que serás llamado a tomar una decisión final significativa, a rendir cuentas o a experimentar un renacimiento. Escuchá tu llamado interior, revisá tu camino y preparate para ascender a un nuevo nivel de conciencia. Es una oportunidad para una profunda transformación y liberación. <span class='future-question'>¿Estás listo para responder a ese llamado y renacer?</span>"
+                }, image: "images/Juicio.png"
              },
             { id: 21, name: "El Mundo", categoria: "Plenitud / Realización", isChallenge: false,
-                interpretation: { /* ... */ },
-                image: "images/Mundo.png" // Ruta actualizada (Asumiendo nombre de archivo)
+                interpretation: {
+                    past: "Esta situación viene de la culminación exitosa de un ciclo o proyecto importante en el pasado. Representa un tiempo de realización, integración y satisfacción donde se alcanzaron metas significativas y se sintió una sensación de totalidad y unidad. Ese logro completado y esa sensación de plenitud son la base desde la cual operás ahora.",
+                    present: "Has llegado a un punto de culminación y realización exitosa. El Mundo indica que un ciclo importante se está completando satisfactoriamente ahora. Sentí la integración, la totalidad y la satisfacción por el viaje recorrido. Es momento de celebrar tus logros y disfrutar de la sensación de unidad y éxito. Reconocé tu completitud. ¿Qué ciclo importante estás completando ahora?",
+                    future: "El futuro promete la culminación exitosa de tus esfuerzos y la realización de tus metas. El Mundo indica la finalización satisfactoria de un ciclo importante, trayendo consigo una sensación de totalidad, integración y éxito. Podrás celebrar tus logros y disfrutar de la sensación de haber completado tu viaje. Un nuevo ciclo comenzará desde este lugar de plenitud. <span class='future-question'>¿Cómo vas a celebrar esta culminación y prepararte para lo que sigue?</span>"
+                }, image: "images/Mundo.png"
              }
-        ];
+            // IMPORTANTE: Reemplazá las URLs de placehold.co con las URLs de tus imágenes de cartas.
+        ];
 
-        // --- Elementos del DOM ---
-        const drawButton = document.getElementById('drawButton');
-        const cardDisplayArea = document.getElementById('cardDisplayArea');
-        const interpretationArea = document.getElementById('interpretationArea');
-        const conclusionArea = document.getElementById('conclusionArea');
+        // --- Elementos del DOM ---
+        const drawButton = document.getElementById('drawButton');
+        const cardDisplayArea = document.getElementById('cardDisplayArea');
+        const interpretationArea = document.getElementById('interpretationArea');
+        const conclusionArea = document.getElementById('conclusionArea');
+        // Variable global para guardar la última tirada (ya no se usa para email, podría eliminarse si no se usa para otra cosa)
+        // let ultimaTirada = null; // Eliminada por ahora
 
-        // --- Funciones ---
+        // --- Funciones ---
 
-        /** Baraja un array (Fisher-Yates) */
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
+        /** Baraja un array (Fisher-Yates) */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
 
-        /** Realiza la tirada y muestra resultados, incluyendo conclusión dinámica */
-        function realizarTirada() {
-            const mazoBarajado = [...cartasMayores];
-            shuffleArray(mazoBarajado);
-            const tirada = mazoBarajado.slice(0, 3); // Array con los 3 objetos carta
+        /** Realiza la tirada y muestra resultados, incluyendo conclusión dinámica */
+        function realizarTirada() {
+            const mazoBarajado = [...cartasMayores];
+            shuffleArray(mazoBarajado);
+            const tirada = mazoBarajado.slice(0, 3); // Array con los 3 objetos carta
+            // ultimaTirada = tirada; // Ya no es necesaria
 
-            cardDisplayArea.innerHTML = '';
-            interpretationArea.innerHTML = '';
-            conclusionArea.innerHTML = '';
+            cardDisplayArea.innerHTML = '';
+            interpretationArea.innerHTML = '';
+            conclusionArea.innerHTML = '';
 
-            // Muestra cartas e interpretaciones individuales
-            tirada.forEach((carta, index) => {
-                let positionLabel = '';
-                let interpretationKey = '';
+            // Muestra cartas e interpretaciones individuales
+            tirada.forEach((carta, index) => {
+                let positionLabel = '';
+                let interpretationKey = '';
 
-                if (index === 0) { positionLabel = 'Pasado'; interpretationKey = 'past'; }
-                else if (index === 1) { positionLabel = 'Presente'; interpretationKey = 'present'; }
-                else { positionLabel = 'Futuro Posible'; interpretationKey = 'future'; }
+                if (index === 0) { positionLabel = 'Pasado'; interpretationKey = 'past'; }
+                else if (index === 1) { positionLabel = 'Presente'; interpretationKey = 'present'; }
+                else { positionLabel = 'Futuro Posible'; interpretationKey = 'future'; }
 
-                // --- Crear Elemento Carta ---
-                const cardElement = document.createElement('div');
-                // Clases de Tailwind para estilos y responsividad
-                cardElement.className = 'tarot-card w-40 md:w-48 lg:w-56 bg-white rounded-lg shadow-lg overflow-hidden border border-zen-pale-gold';
-                const cardBack = document.createElement('div');
-                cardBack.className = 'card-back w-full h-full'; // Reverso de la carta
-                const cardContent = document.createElement('div');
-                cardContent.className = 'card-content h-full flex flex-col'; // Contenedor del frente
-                const labelElement = document.createElement('div');
-                labelElement.textContent = positionLabel;
-                labelElement.className = 'position-label'; // Etiqueta Pasado/Presente/Futuro
-                const img = document.createElement('img');
-                img.src = carta.image; // ¡Usa la ruta actualizada!
-                img.alt = carta.name;
-                img.className = 'w-full flex-grow object-cover'; // Imagen de la carta
-                img.onerror = function() { // Manejo de error si la imagen no carga
-                    this.onerror=null; // Evita bucles infinitos
-                    this.src='https://placehold.co/200x350/cccccc/ffffff?text=Error'; // Imagen de fallback
-                    console.error(`Error al cargar la imagen: ${carta.image}`);
-                };
-                const nameContainer = document.createElement('div');
-                nameContainer.className = 'p-1 text-center flex-shrink-0 bg-white rounded-b-lg'; // Contenedor para nombre/categoría
-                const name = document.createElement('h3');
-                name.textContent = carta.name;
-                name.className = 'text-xs md:text-sm font-semibold text-zen-deep-teal'; // Nombre de la carta
-                const category = document.createElement('p');
-                category.textContent = carta.categoria;
-                category.className = 'category-label'; // Categoría
-                nameContainer.appendChild(category);
-                nameContainer.appendChild(name);
-                cardContent.appendChild(labelElement);
-                cardContent.appendChild(img);
-                cardContent.appendChild(nameContainer);
-                cardElement.appendChild(cardBack);
-                cardElement.appendChild(cardContent);
-                cardDisplayArea.appendChild(cardElement); // Añade la carta al área de visualización
+                // --- Crear Elemento Carta ---
+                const cardElement = document.createElement('div');
+                cardElement.className = 'tarot-card w-40 md:w-48 lg:w-56 bg-white rounded-lg shadow-lg overflow-hidden border border-zen-pale-gold';
+                const cardBack = document.createElement('div');
+                cardBack.className = 'card-back w-full h-full';
+                const cardContent = document.createElement('div');
+                cardContent.className = 'card-content h-full flex flex-col';
+                const labelElement = document.createElement('div');
+                labelElement.textContent = positionLabel;
+                labelElement.className = 'position-label';
+                const img = document.createElement('img');
+                img.src = carta.image;
+                img.alt = carta.name;
+                img.className = 'w-full flex-grow object-cover';
+                const nameContainer = document.createElement('div');
+                nameContainer.className = 'p-1 text-center flex-shrink-0';
+                const name = document.createElement('h3');
+                name.textContent = carta.name;
+                name.className = 'text-xs md:text-sm font-semibold text-zen-deep-teal';
+                const category = document.createElement('p');
+                category.textContent = carta.categoria;
+                category.className = 'category-label';
+                nameContainer.appendChild(category);
+                nameContainer.appendChild(name);
+                cardContent.appendChild(labelElement);
+                cardContent.appendChild(img);
+                cardContent.appendChild(nameContainer);
+                cardElement.appendChild(cardBack);
+                cardElement.appendChild(cardContent);
+                cardDisplayArea.appendChild(cardElement);
 
-                // --- Crear Interpretación Individual (Selección Dinámica) ---
-                const interpretationElement = document.createElement('div');
-                interpretationElement.className = 'mb-4 p-4 bg-zen-off-white rounded shadow-sm';
-                // Obtiene la interpretación correcta (past, present, future)
-                const interpretationText = carta.interpretation[interpretationKey] || "Interpretación no disponible.";
-                // Usamos innerHTML para renderizar el span de la pregunta si existe
-                interpretationElement.innerHTML = `
-                    <h4 class="font-serif text-xl font-bold text-zen-deep-teal mb-1">${positionLabel}: ${carta.name}</h4>
-                    <p class="text-xs italic text-gray-500 mb-2">Categoría: ${carta.categoria}</p>
-                    <p class="text-zen-dark-slate leading-relaxed">${interpretationText}</p>
-                `;
-                interpretationArea.appendChild(interpretationElement); // Añade la interpretación al área correspondiente
+                // --- Crear Interpretación Individual (Selección Dinámica) ---
+                const interpretationElement = document.createElement('div');
+                interpretationElement.className = 'mb-4 p-4 bg-zen-off-white rounded shadow-sm';
+                const interpretationText = carta.interpretation[interpretationKey] || "Interpretación no disponible.";
+                // Usamos innerHTML para renderizar el span de la pregunta si existe
+                interpretationElement.innerHTML = `
+                    <h4 class="font-serif text-xl font-bold text-zen-deep-teal mb-1">${positionLabel}: ${carta.name}</h4>
+                    <p class="text-xs italic text-gray-500 mb-2">Categoría: ${carta.categoria}</p>
+                    <p class="text-zen-dark-slate leading-relaxed">${interpretationText}</p>
+                `;
+                interpretationArea.appendChild(interpretationElement);
 
-                // --- Revelar Carta (Animación simple) ---
-                 setTimeout(() => {
-                    cardElement.classList.add('revealed'); // Añade clase para mostrar el frente
-                 }, (index + 1) * 300); // Retraso escalonado para cada carta
-            });
+                // --- Revelar Carta ---
+                 setTimeout(() => {
+                    cardElement.classList.add('revealed');
+                 }, (index + 1) * 300);
+            });
 
-            // --- Generación Dinámica de la Conclusión Final ---
-            generarConclusion(tirada); // Llama a la función que crea el texto final
+            // --- Generación Dinámica de la Conclusión Final ---
+            generarConclusion(tirada);
 
-        }
+        }
 
-        /** Genera el HTML para la conclusión final basada en las 3 cartas */
-        function generarConclusion(tirada) {
-             const cartaPasado = tirada[0];
-            const cartaPresente = tirada[1];
-            const cartaFuturo = tirada[2];
-            conclusionArea.innerHTML = ''; // Limpia el área antes de añadir nuevo contenido
+        /** Genera el HTML para la conclusión final */
+        function generarConclusion(tirada) {
+             const cartaPasado = tirada[0];
+            const cartaPresente = tirada[1];
+            const cartaFuturo = tirada[2];
+            conclusionArea.innerHTML = ''; // Limpia por si acaso
 
-            // Construcción del HTML de la conclusión
-            let conclusionHTML = `
-                <div class="mt-8 p-6 bg-gradient-to-br from-zen-off-white to-white rounded-lg shadow border border-zen-pale-gold">
-                    <h4 class="font-serif text-xl font-bold text-zen-deep-teal mb-4 text-center">Reflexión Final</h4>
-                    <p class="text-zen-dark-slate leading-relaxed text-center mb-4">Observá la narrativa energética completa:</p>
-                    <ul class="list-disc list-inside space-y-2 text-left max-w-md mx-auto text-zen-dark-slate mb-5">
-                        <li>Venís de una energía de <strong>${cartaPasado.categoria}</strong> (representada por <span class="font-semibold">${cartaPasado.name}</span>).</li>
-                        <li>Estás transitando una energía de <strong>${cartaPresente.categoria}</strong> (representada por <span class="font-semibold">${cartaPresente.name}</span>).</li>
-                        <li>Y te dirigís hacia un potencial de <strong>${cartaFuturo.categoria}</strong> (representada por <span class="font-semibold">${cartaFuturo.name}</span>).</li>
-                    </ul>
-                     <p class="text-zen-dark-slate leading-relaxed text-center mb-4">¿Cómo se conectan estas fases energéticas en tu historia? ¿Hay una progresión, un contraste, una repetición?</p>
-                    <p class="text-zen-dark-slate leading-relaxed text-center mt-4 mb-4">
-                        Ahora, centrémonos en esa carta del <strong>Futuro Posible: ${cartaFuturo.name}</strong> y su energía de <strong>${cartaFuturo.categoria}</strong>. Recordá siempre que el Tarot ilumina tendencias y potenciales. El verdadero poder reside en tus manos, en las decisiones y acciones que vos tomés ahora.
-                    </p>
-                    <h5 class="font-semibold text-center text-zen-deep-teal mb-3">Considerá la energía de ${cartaFuturo.name} (${cartaFuturo.categoria}):</h5>
-            `;
+            let conclusionHTML = `
+                <div class="mt-8 p-6 bg-gradient-to-br from-zen-off-white to-white rounded-lg shadow border border-zen-pale-gold">
+                    <h4 class="font-serif text-xl font-bold text-zen-deep-teal mb-4 text-center">Reflexión Final</h4>
+                    <p class="text-zen-dark-slate leading-relaxed text-center mb-4">Observá la narrativa energética completa:</p>
+                    <ul class="list-disc list-inside space-y-2 text-left max-w-md mx-auto text-zen-dark-slate mb-5">
+                        <li>Venís de una energía de <strong>${cartaPasado.categoria}</strong> (representada por <span class="font-semibold">${cartaPasado.name}</span>).</li>
+                        <li>Estás transitando una energía de <strong>${cartaPresente.categoria}</strong> (representada por <span class="font-semibold">${cartaPresente.name}</span>).</li>
+                       T<li>Y te dirigís hacia un potencial de <strong>${cartaFuturo.categoria}</strong> (representada por <span class="font-semibold">${cartaFuturo.name}</span>).</li>
+                    </ul>
+                     <p class="text-zen-dark-slate leading-relaxed text-center mb-4">¿Cómo se conectan estas fases energéticas en tu historia? ¿Hay una progresión, un contraste, una repetición?</p>
+                    <p class="text-zen-dark-slate leading-relaxed text-center mt-4 mb-4">
+                        Ahora, centrémonos en esa carta del <strong>Futuro Posible: ${cartaFuturo.name}</strong> y su energía de <strong>${cartaFuturo.categoria}</strong>. Recordá siempre que el Tarot ilumina tendencias y potenciales. El verdadero poder reside en tus manos, en las decisiones y acciones que vos tomés ahora.
+                    </p>
+                    <h5 class="font-semibold text-center text-zen-deep-teal mb-3">Considerá la energía de ${cartaFuturo.name} (${cartaFuturo.categoria}):</h5>
+            `;
 
-            // Añade texto específico si la carta futura es considerada un desafío o no
-            if (cartaFuturo.isChallenge) {
-                conclusionHTML += `
-                    <div class="bg-red-50 border border-red-200 p-4 rounded-md text-sm">
-                        <p class="text-red-800 leading-relaxed">
-                            Esta combinación te muestra una energía que requiere tu atención consciente hacia adelante. No la veas como una sentencia, sino como una valiosa <strong>señal</strong> y una <strong>oportunidad para prepararte</strong>. Te da la ventaja de la anticipación. Preguntate:
-                        </p>
-                        <ul class="list-disc list-inside space-y-1 mt-2 text-red-700">
-                            <li>¿Qué lección o advertencia me trae esta energía potencial de '${cartaFuturo.categoria}'?</li>
-                            <li>¿Qué acciones o cambios de perspectiva en mi presente (guiado por ${cartaPresente.name} y su energía de '${cartaPresente.categoria}') puedo implementar para navegar esta energía futura de forma constructiva o incluso transformarla?</li>
-                            <li>¿Qué fortalezas o aprendizajes del pasado (${cartaPasado.name}, energía de '${cartaPasado.categoria}') puedo utilizar como recurso ahora?</li>
-                            <li>¿Qué necesito soltar o desarrollar en mí para afrontar este potencial con mayor sabiduría y resiliencia?</li>
-                        </ul>
-                    </div>
-                `;
-            } else {
-                conclusionHTML += `
-                    <div class="bg-green-50 border border-green-200 p-4 rounded-md text-sm">
-                        <p class="text-green-800 leading-relaxed">
-                            Esta combinación ilumina un camino lleno de <strong>potencial favorable</strong> que podés activamente cultivar y atraer hacia vos. Es una invitación a co-crear ese futuro auspicioso. Para nutrir esta energía y ayudarla a manifestarse, reflexioná:
-                        </p>
-                        <ul class="list-disc list-inside space-y-1 mt-2 text-green-700">
-                            <li>¿Cómo puedo alinear mis acciones y mi enfoque actual (influenciado por ${cartaPresente.name} y su energía de '${cartaPresente.categoria}') con la vibración positiva de ${cartaFuturo.name} ('${cartaFuturo.categoria}')?</li>
-                            <li>¿Qué pasos concretos, por pequeños que sean, puedo dar *hoy* para moverme en esa dirección?</li>
-                            <li>¿Cómo puedo usar las bases o lecciones de mi pasado (${cartaPasado.name}, energía de '${cartaPasado.categoria}') para construir sobre seguro hacia este futuro?</li>
-                            <li>¿Qué necesito creer o permitir en mi vida para recibir plenamente esta bendición potencial?</li>
-                        </ul>
-                    </div>
-                `;
-            }
+            if (cartaFuturo.isChallenge) {
+                conclusionHTML += `
+                    <div class="bg-red-50 border border-red-200 p-4 rounded-md text-sm">
+                        <p class="text-red-800 leading-relaxed">
+                            Esta combinación te muestra una energía que requiere tu atención consciente hacia adelante. No la veas como una sentencia, sino como una valiosa <strong>señal</strong> y una <strong>oportunidad para prepararte</strong>. Te da la ventaja de la anticipación. Preguntate:
+                        </p>
+                        <ul class="list-disc list-inside space-y-1 mt-2 text-red-700">
+                            <li>¿Qué lección o advertencia me trae esta energía potencial de '${cartaFuturo.categoria}'?</li>
+                            <li>¿Qué acciones o cambios de perspectiva en mi presente (guiado por ${cartaPresente.name} y su energía de '${cartaPresente.categoria}') puedo implementar para navegar esta energía futura de forma constructiva o incluso transformarla?</li>
+                            <li>¿Qué fortalezas o aprendizajes del pasado (${cartaPasado.name}, energía de '${cartaPasado.categoria}') puedo utilizar como recurso ahora?</li>
+                            <li>¿Qué necesito soltar o desarrollar en mí para afrontar este potencial con mayor sabiduría y resiliencia?</li>
+                        </ul>
+                    </div>
+                `;
+            } else {
+                conclusionHTML += `
+                    <div class="bg-green-50 border border-green-200 p-4 rounded-md text-sm">
+                        <p class="text-green-800 leading-relaxed">
+                            Esta combinación ilumina un camino lleno de <strong>potencial favorable</strong> que podés activamente cultivar y atraer hacia vos. Es una invitación a co-crear ese futuro auspicioso. Para nutrir esta energía y ayudarla a manifestarse, reflexioná:
+                        </p>
+                        <ul class="list-disc list-inside space-y-1 mt-2 text-green-700">
+                            <li>¿Cómo puedo alinear mis acciones y mi enfoque actual (influenciado por ${cartaPresente.name} y su energía de '${cartaPresente.categoria}') con la vibración positiva de ${cartaFuturo.name} ('${cartaFuturo.categoria}')?</li>
+                            <li>¿Qué pasos concretos, por pequeños que sean, puedo dar *hoy* para moverme en esa dirección?</li>
+                            <li>¿Cómo puedo usar las bases o lecciones de mi pasado (${cartaPasado.name}, energía de '${cartaPasado.categoria}') para construir sobre seguro hacia este futuro?</li>
+                            <li>¿Qué necesito creer o permitir en mi vida para recibir plenamente esta bendición potencial?</li>
+                        </ul>
+                    </div>
+                `;
+            }
 
-            // Cierre del HTML de la conclusión
-            conclusionHTML += `
-                    <p class="text-center text-zen-dark-slate mt-6 font-semibold">
-                        Vos sos el Mago de tu vida. Usá la sabiduría de esta lectura como punto de partida para la acción consciente. Confiá en tu intuición.
-                    </p>
-                </div>
-            `;
-            conclusionArea.innerHTML = conclusionHTML; // Inserta el HTML generado en el área de conclusión
-        }
+            conclusionHTML += `
+                    <p class="text-center text-zen-dark-slate mt-6 font-semibold">
+                        Vos sos el Mago de tu vida. Usá la sabiduría de esta lectura como punto de partida para la acción consciente. Confiá en tu intuición.
+                    </p>
+                </div> 
+            `;
+            conclusionArea.innerHTML = conclusionHTML;
+        }
 
-        // --- Event Listener ---
-        // Asigna la función realizarTirada al evento 'click' del botón
-        drawButton.addEventListener('click', realizarTirada);
+        // --- Event Listener ---
+        drawButton.addEventListener('click', realizarTirada);
 
-        // Opcional: Limpiar al cargar la página para que no queden restos de una tirada anterior si se recarga
-        window.onload = () => {
-             cardDisplayArea.innerHTML = '<div class="text-gray-400 italic">Presioná el botón para ver tu tirada...</div>';
-             interpretationArea.innerHTML = '';
-             conclusionArea.innerHTML = '';
-        }
-
-    </script>
+    </script>
 
 </body>
-</html>
+</ht
