@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Consolidador MVT/FWB</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        color: #1f2937;
+        background: #f3f4f6;
+      }
+
+      body {
+        margin: 0;
+        padding: 1.5rem;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+
+      .card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        padding: 1rem;
+      }
+
+      h1, h2 {
+        margin-top: 0;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 220px;
+        resize: vertical;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        padding: 0.75rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.9rem;
+      }
+
+      .actions {
+        margin: 1rem 0;
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: 0;
+        background: #2563eb;
+        color: #fff;
+        padding: 0.65rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      button.secondary {
+        background: #374151;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      th, td {
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0.6rem;
+        text-align: left;
+      }
+
+      th {
+        background: #111827;
+        color: #fff;
+      }
+
+      .hint {
+        color: #4b5563;
+        margin-top: 0;
+      }
+
+      .small {
+        font-size: 0.8rem;
+        color: #6b7280;
+      }
+
+      .badge {
+        display: inline-block;
+        border-radius: 999px;
+        background: #dbeafe;
+        color: #1d4ed8;
+        padding: 0.15rem 0.55rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Registro consolidado por vuelo (MVT/AD + MVT/AA + FWB)</h1>
+    <p class="hint">Pega los tres mensajes, procesa y obtén un registro tipo Excel por día de vuelo. Si hay varios FWB para el mismo vuelo, aparecen como filas separadas.</p>
+
+    <section class="layout">
+      <article class="card">
+        <h2>MVT/AD</h2>
+        <p class="small">Ejemplo: <code>AD CM123/21 ...</code></p>
+        <textarea id="mvtAd" placeholder="Pega aquí mensajes MVT/AD..."></textarea>
+      </article>
+
+      <article class="card">
+        <h2>MVT/AA</h2>
+        <p class="small">Ejemplo: <code>AA CM123/21 ...</code></p>
+        <textarea id="mvtAa" placeholder="Pega aquí mensajes MVT/AA..."></textarea>
+      </article>
+
+      <article class="card">
+        <h2>FWB</h2>
+        <p class="small">Busca AWB, piezas, peso y volumen automáticamente.</p>
+        <textarea id="fwb" placeholder="Pega aquí uno o varios FWB..."></textarea>
+      </article>
+    </section>
+
+    <div class="actions">
+      <button id="procesarBtn">Procesar mensajes</button>
+      <button id="csvBtn" class="secondary">Exportar CSV</button>
+      <span id="status" class="badge">Sin procesar</span>
+    </div>
+
+    <section class="card">
+      <h2>Resultado consolidado</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Día vuelo</th>
+            <th>Vuelo</th>
+            <th>AWB</th>
+            <th>Piezas</th>
+            <th>Peso</th>
+            <th>Volumen</th>
+            <th>Detalle MVT</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+      </table>
+    </section>
+
+    <script>
+      const mvtAdInput = document.getElementById('mvtAd');
+      const mvtAaInput = document.getElementById('mvtAa');
+      const fwbInput = document.getElementById('fwb');
+      const tablaBody = document.getElementById('tablaBody');
+      const statusBadge = document.getElementById('status');
+      let ultimoResultado = [];
+
+      function normalizarTexto(texto) {
+        return texto.replace(/\r/g, '').toUpperCase();
+      }
+
+      function extraerVuelosMvt(texto, tipo) {
+        const vuelos = [];
+        const normal = normalizarTexto(texto);
+        const regex = /\b(?:AD|AA|ARR|DEP)?\s*([A-Z0-9]{2,3}\d{2,4})\/(\d{1,2})\b/g;
+        let match;
+
+        while ((match = regex.exec(normal)) !== null) {
+          const vuelo = match[1];
+          const dia = match[2].padStart(2, '0');
+          vuelos.push({
+            clave: `${dia}-${vuelo}`,
+            diaVuelo: dia,
+            vuelo,
+            fuente: tipo,
+            bruto: match[0].trim()
+          });
+        }
+
+        return vuelos;
+      }
+
+      function extraerBloquesFwb(texto) {
+        const normal = normalizarTexto(texto).trim();
+        if (!normal) return [];
+
+        const partes = normal
+          .split(/\n(?=FWB)/g)
+          .map((parte) => parte.trim())
+          .filter(Boolean);
+
+        return partes.length ? partes : [normal];
+      }
+
+      function capturar(regex, texto) {
+        const match = texto.match(regex);
+        return match ? match[1] : '';
+      }
+
+      function extraerFwb(texto) {
+        return extraerBloquesFwb(texto).map((bloque) => {
+          const awb = capturar(/(?:\bAWB\/?\s*|\b)(\d{3}-?\d{8})\b/, bloque);
+          const piezas = capturar(/(?:\bP\/|\bPCS\/|\bPIECES\/?\s*)(\d+)\b/, bloque);
+          const peso = capturar(/(?:\bG\/|\bWGT\/|\bWEIGHT\/?\s*)([\d.,]+)\b/, bloque);
+          const volumen = capturar(/(?:\bV\/|\bVOL\/|\bVOLUME\/?\s*)([\d.,]+)\b/, bloque);
+
+          const matchVuelo = bloque.match(/(?:\bFLT\/?\s*|\bFLIGHT\/?\s*)([A-Z0-9]{2,3}\d{2,4})(?:\/(\d{1,2}))?/);
+          const vuelo = matchVuelo ? matchVuelo[1] : 'SIN VUELO';
+          const diaVuelo = matchVuelo && matchVuelo[2] ? matchVuelo[2].padStart(2, '0') : '00';
+
+          return {
+            clave: `${diaVuelo}-${vuelo}`,
+            diaVuelo,
+            vuelo,
+            awb: awb || 'N/D',
+            piezas: piezas || 'N/D',
+            peso: peso || 'N/D',
+            volumen: volumen || 'N/D',
+            bloque
+          };
+        });
+      }
+
+      function consolidar() {
+        const vuelosAd = extraerVuelosMvt(mvtAdInput.value, 'MVT/AD');
+        const vuelosAa = extraerVuelosMvt(mvtAaInput.value, 'MVT/AA');
+        const fwbData = extraerFwb(fwbInput.value);
+
+        const mapaMvt = new Map();
+        [...vuelosAd, ...vuelosAa].forEach((fila) => {
+          const actual = mapaMvt.get(fila.clave) || [];
+          actual.push(`${fila.fuente}: ${fila.bruto}`);
+          mapaMvt.set(fila.clave, actual);
+        });
+
+        const resultado = [];
+
+        fwbData.forEach((fwb) => {
+          const detalleMvt = mapaMvt.get(fwb.clave) || [];
+          resultado.push({
+            diaVuelo: fwb.diaVuelo,
+            vuelo: fwb.vuelo,
+            awb: fwb.awb,
+            piezas: fwb.piezas,
+            peso: fwb.peso,
+            volumen: fwb.volumen,
+            detalleMvt: detalleMvt.length ? detalleMvt.join(' | ') : 'Sin coincidencia MVT'
+          });
+        });
+
+        // También mostramos vuelos MVT sin FWB asociado
+        const clavesFwb = new Set(fwbData.map((item) => item.clave));
+        mapaMvt.forEach((detalles, clave) => {
+          if (clavesFwb.has(clave)) return;
+          const [diaVuelo, vuelo] = clave.split('-');
+          resultado.push({
+            diaVuelo,
+            vuelo,
+            awb: '-',
+            piezas: '-',
+            peso: '-',
+            volumen: '-',
+            detalleMvt: detalles.join(' | ')
+          });
+        });
+
+        resultado.sort((a, b) => {
+          if (a.diaVuelo === b.diaVuelo) return a.vuelo.localeCompare(b.vuelo);
+          return a.diaVuelo.localeCompare(b.diaVuelo);
+        });
+
+        return resultado;
+      }
+
+      function renderTabla(filas) {
+        tablaBody.innerHTML = '';
+        if (!filas.length) {
+          tablaBody.innerHTML = '<tr><td colspan="7">No se encontraron datos para consolidar.</td></tr>';
+          return;
+        }
+
+        filas.forEach((fila) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${fila.diaVuelo}</td>
+            <td>${fila.vuelo}</td>
+            <td>${fila.awb}</td>
+            <td>${fila.piezas}</td>
+            <td>${fila.peso}</td>
+            <td>${fila.volumen}</td>
+            <td>${fila.detalleMvt}</td>
+          `;
+          tablaBody.appendChild(tr);
+        });
+      }
+
+      function exportarCsv(filas) {
+        if (!filas.length) return;
+        const headers = ['DiaVuelo', 'Vuelo', 'AWB', 'Piezas', 'Peso', 'Volumen', 'DetalleMVT'];
+        const lines = [headers.join(',')];
+
+        filas.forEach((fila) => {
+          const values = [
+            fila.diaVuelo,
+            fila.vuelo,
+            fila.awb,
+            fila.piezas,
+            fila.peso,
+            fila.volumen,
+            fila.detalleMvt
+          ].map((valor) => `"${String(valor).replaceAll('"', '""')}"`);
+
+          lines.push(values.join(','));
+        });
+
+        const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'registro-vuelos.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById('procesarBtn').addEventListener('click', () => {
+        ultimoResultado = consolidar();
+        renderTabla(ultimoResultado);
+        statusBadge.textContent = `Filas: ${ultimoResultado.length}`;
+      });
+
+      document.getElementById('csvBtn').addEventListener('click', () => {
+        exportarCsv(ultimoResultado);
+      });
+    </script>
+  </body>
+</html>

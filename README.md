@@ -56,3 +56,5 @@ Get help: [Post in our discussion board](https://github.com/orgs/skills/discussi
 ## Recursos adicionales
 
 - Plantilla de tablero para seguimiento de pruebas por ticket: [tablero-jiras-pruebas.md](tablero-jiras-pruebas.md)
+
+- App para consolidar mensajes MVT/AD, MVT/AA y FWB: [registro-vuelos.html](registro-vuelos.html)
